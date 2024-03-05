@@ -268,15 +268,16 @@ class MainWindow(QMainWindow):
         
         
 
-        """
+        
         # testbench
-        self.SelStat["AMB"].setCurrentIndex(2)
+        self.SelStat["AMB"].setCurrentIndex(1)
         self.CheckStat["AMB"].setChecked(True)
         self.Giorni.setText("1 3  5 12")
         self.OraDa.setValue(22)
         self.OraA.setValue(4)
         self.Plot.click()
         
+        """
         self.SelStat["DA"].setCurrentIndex(9)
         self.SelStat["A"].setCurrentIndex(6)
         self.CheckStat["AMB"].setChecked(False)
@@ -437,6 +438,17 @@ class MainWindow(QMainWindow):
             self.CheckStat[lab].setChecked(False)
             data_Ord[lab] = [indx, int(check_stat[lab])]
 
+            if lab == "AMB": # salvo eventuale testo addizionale
+                if self.LinStat[i_lin][0]["name"] == "---storica---" and \
+                    self.LinStat[i_lin][i_stat]["name"] == "TO POR NUOVA":
+                    text_add = "\n(11-20)"
+                elif self.LinStat[i_lin][0]["name"] == "---genova---" and \
+                    self.LinStat[i_lin][i_stat]["name"] == "TO POR NUOVA":
+                    text_add = "\n(1-10)"
+                else:
+                    text_add = ""
+
+
         bin = self.Binario.currentText()
         data_Ord["bin"] = self.Binario.currentIndex()
 
@@ -493,13 +505,15 @@ class MainWindow(QMainWindow):
                 pos_x.append([i_w, pos_x_min, 7])
                 pos_x.append([i_w+1, 0, pos_x_max-7])
 
-        text = str(n_ord)+"\n"+bin
+        
         # elaborazione spessore
         data_Ord["graph"] = {}
         if check_stat["AMB"]:
+            text = str(n_ord)+text_add
             pos_y = pos_Stat["AMB"]
             self.Panel.printIntSt(pos_x, pos_y, pen, text, data_Ord["graph"])
         else:
+            text = str(n_ord)+"\n"+bin
             pos_y = [pos_Stat["DA"], pos_Stat["A"]]
             data_Ord["graph"] = self.Panel.printIntLin(pos_x, pos_y, pen, text, data_Ord["graph"])
 
