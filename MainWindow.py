@@ -22,7 +22,6 @@ class MainWindow(QMainWindow):
         self.workFold = os.path.expanduser("~")
         self.workFold = os.path.join(self.workFold, "Documents")
         self.workFold = os.path.join(self.workFold, "Grafico Interruzioni")
-        self.workFold = self.workFold + "/"
 
 
         # definizione layout base [comandi, grafico]
@@ -54,7 +53,7 @@ class MainWindow(QMainWindow):
         dim_lay_comH.append(dim_st) #7: DA
         dim_lay_comH.append(dim_st) #8: A
         dim_lay_comH.append([]) #9: spazio
-        dim_lay_comH.append([2, 1, 1, 2]) #10: binario e alimentazione
+        dim_lay_comH.append([2, 4, 1, 2]) #10: binario e alimentazione
         dim_lay_comH.append([]) #11: spazio
         dim_lay_comH.append([2, 1]) # 12: riga input time e tabella
         dim_lay_comH.append([]) #13: spazio
@@ -68,7 +67,7 @@ class MainWindow(QMainWindow):
         for i in range(N_lay_comV_el):
             dim_lay_comV.append(1)
             if i == 12:
-                dim_lay_comV[i] = 6
+                dim_lay_comV[i] = 3
 
         # dimensioni box timing
         dim_lay_days = [2, 1]
@@ -86,45 +85,40 @@ class MainWindow(QMainWindow):
 
         
 
-
+        self.fontSize = 12
 
         r = 0
         self.Mese = QSpinBox()
-        self.Mese.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         lay_comH[r].addWidget(self.Mese, dim_lay_comH[r][0] )
         lay_comH[r].addWidget(QLabel("Mese"), dim_lay_comH[r][1] )
 
         self.Anno = QSpinBox()
-        self.Anno.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         lay_comH[r].addWidget(self.Anno, dim_lay_comH[r][2] )
         lay_comH[r].addWidget(QLabel("Anno"), dim_lay_comH[r][3] )
         
-        self.PrintCal = QPushButton("Calendar")
-        self.PrintCal.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.PrintCal = QPushButton("Calendario")
         self.PrintCal.clicked.connect(self.setCalendar)
         lay_comH[r].addWidget(self.PrintCal, dim_lay_comH[r][4] )
 
 
         r = r +2
         self.LoadStat = QPushButton("Stazioni")
-        self.LoadStat.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.LoadStat.clicked.connect(self.changeStations)
         lay_comH[r].addWidget(self.LoadStat, dim_lay_comH[r][0] )
 
+
         self.Riprogram = QPushButton("Riprogramma")
-        self.Riprogram.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.Riprogram.clicked.connect(self.loadFile)
         lay_comH[r].addWidget(self.Riprogram, dim_lay_comH[r][1] )
 
         lay_comH[r].addStretch(dim_lay_comH[r][2])
         self.SelWeek = QComboBox()
-        self.SelWeek.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         lay_comH[r].addWidget(self.SelWeek, dim_lay_comH[r][3])
         lay_comH[r].addWidget(QLabel("Settimana"), dim_lay_comH[r][4])
 
 
         r = r +2
         self.nOrd = QSpinBox()
-        self.nOrd.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.nOrd.setValue(1)
         lay_comH[r].addWidget(self.nOrd, dim_lay_comH[r][0] )
         lay_comH[r].addWidget(QLabel("N° ORD"), dim_lay_comH[r][1] )
@@ -137,15 +131,10 @@ class MainWindow(QMainWindow):
         self.CheckStat = {}
         for i in range(3):
             self.SelStat[keys[i]] = QComboBox() # salvo le selezioni delle stazioni in un dizionario
-            self.SelStat[keys[i]].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            font = self.SelStat[keys[i]].font()
-            font.setPointSize(14)  # Adjust the font size as needed
-            self.SelStat[keys[i]].setFont(font)
             lay_comH[r+i].addWidget(self.SelStat[keys[i]], dim_lay_comH[r+i][0])
             lay_comH[r+i].addWidget(QLabel(labels[i]), dim_lay_comH[r+i][1])
 
             self.CheckStat[keys[i]] = QCheckBox()
-            self.CheckStat[keys[i]].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             lay_comH[r+i].addWidget(self.CheckStat[keys[i]], dim_lay_comH[r+i][2])
             lay_comH[r+i].addWidget(QLabel(check_lab[i]), dim_lay_comH[r+i][3])
             self.CheckStat[keys[i]].setStyleSheet("QCheckBox::indicator" \
@@ -162,23 +151,18 @@ class MainWindow(QMainWindow):
         
         r = r+4
         self.Binario = QComboBox()
-        self.Binario.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        font = self.Binario.font()
-        font.setPointSize(14)  # Adjust the font size as needed
-        self.Binario.setFont(font)
         self.Binario.addItems(["P","D","P/D","U"])
         lay_comH[r].addWidget(self.Binario, dim_lay_comH[r][0])
         lay_comH[r].addWidget(QLabel("Binario"), dim_lay_comH[r][1])
 
-        lay_comH[r].addStretch(dim_lay_comH[r][2])
-
-        self.Alim = QRadioButton("Alimentato")
-        self.Alim.setStyleSheet("QRadioButton::indicator" \
+        self.Alim = QCheckBox()
+        self.Alim.setStyleSheet("QCheckBox::indicator" \
                                         "{" \
                                         "width : 25px;" \
                                         "height : 25px;" \
                                         "}")
-        lay_comH[r].addWidget(self.Alim, dim_lay_comH[r][3])
+        lay_comH[r].addWidget(self.Alim, dim_lay_comH[r][2])
+        lay_comH[r].addWidget(QLabel("Alimentato"), dim_lay_comH[r][3])
 
         
         r = r+2
@@ -189,18 +173,15 @@ class MainWindow(QMainWindow):
         lay_singleTim = QHBoxLayout()
         lay_comTim.addLayout(lay_singleTim)
         self.Giorni = QLineEdit()
-        self.Giorni.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         lay_singleTim.addWidget(self.Giorni, dim_lay_days[0])
         lay_singleTim.addWidget(QLabel("Giorni"), dim_lay_days[1])
         # Ora_DA
         lay_singleTim = QHBoxLayout()
         lay_comTim.addLayout(lay_singleTim)
         self.OraDa = QSpinBox()
-        self.OraDa.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.OraDa.setRange(0, 23)
         lay_singleTim.addWidget(self.OraDa, dim_lay_hour[0])
         self.MinDa = QSpinBox()
-        self.MinDa.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.OraDa.setRange(0, 59)
         lay_singleTim.addWidget(self.MinDa, dim_lay_hour[1])
         lay_singleTim.addWidget(QLabel("Ora (DA)"), dim_lay_hour[2])
@@ -208,11 +189,9 @@ class MainWindow(QMainWindow):
         lay_singleTim = QHBoxLayout()
         lay_comTim.addLayout(lay_singleTim)
         self.OraA = QSpinBox()
-        self.OraA.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.OraA.setRange(0, 23)
         lay_singleTim.addWidget(self.OraA, dim_lay_hour[0])
         self.MinA = QSpinBox()
-        self.MinA.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.OraDa.setRange(0, 59)
         lay_singleTim.addWidget(self.MinA, dim_lay_hour[1])
         lay_singleTim.addWidget(QLabel("Ora (A)"), dim_lay_hour[2])
@@ -224,18 +203,21 @@ class MainWindow(QMainWindow):
         self.TableDel.cellChanged.connect(self.deleteOrd)
         lay_comH[r].addWidget(self.TableDel, dim_lay_comH[r][1])
 
+
+
+
         r = r+2
         self.Plot = QPushButton("Grafica")
-        self.Plot.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         lay_comH[r].addWidget(self.Plot, dim_lay_comH[r][0])
         lay_comH[r].addStretch(dim_lay_comH[r][1])
         self.Plot.clicked.connect(self.plotOrd)
 
         self.Save = QPushButton("Salva")
-        self.Save.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         lay_comH[r].addWidget(self.Save, dim_lay_comH[r][2])
         lay_comH[r].addStretch(dim_lay_comH[r][3])
         self.Save.clicked.connect(self.saveFile)
+
+        self.setFontSizeWidgets(lay_comV)
 
         # inizializzazione calendario
         today = datetime.now()
@@ -270,6 +252,7 @@ class MainWindow(QMainWindow):
 
         
         # testbench
+        """
         self.SelStat["AMB"].setCurrentIndex(1)
         self.CheckStat["AMB"].setChecked(True)
         self.Giorni.setText("1 3  5 12")
@@ -277,7 +260,7 @@ class MainWindow(QMainWindow):
         self.OraA.setValue(4)
         self.Plot.click()
         
-        """
+        
         self.SelStat["DA"].setCurrentIndex(9)
         self.SelStat["A"].setCurrentIndex(6)
         self.CheckStat["AMB"].setChecked(False)
@@ -297,13 +280,46 @@ class MainWindow(QMainWindow):
         self.OraDa.setValue(22)
         self.MinDa.setValue(30)
         self.OraA.setValue(7)
+        self.MinA.setValue(20)
+        self.Plot.click()
+
+        self.SelStat["AMB"].setCurrentIndex(16)
+        self.CheckStat["AMB"].setChecked(True)
+        self.Giorni.setText("4 8 17 31")
+        self.Alim.setChecked(True)
+        self.OraDa.setValue(22)
+        self.MinDa.setValue(30)
+        self.OraA.setValue(7)
+        self.MinA.setValue(20)
         self.Plot.click()
 
         self.Save.click()
         """
+        
         """
         self.Riprogram.click()
         """
+
+    def setFontSizeWidgets(self, layout):
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+
+            if isinstance(item, QWidgetItem):
+                widget = item.widget()
+
+                font = widget.font()
+                font.setPointSize(self.fontSize)  # Adjust the font size as needed
+                widget.setFont(font)
+
+                widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+            elif isinstance(item, QSpacerItem):
+                # Handle QSpacerItem if needed
+                pass
+
+            elif isinstance(item.layout(), QBoxLayout):
+                # Recursively handle nested layout
+                self.setFontSizeWidgets(item.layout())
 
     # startup function load the data of next month
     def setCalendar(self):
@@ -322,11 +338,7 @@ class MainWindow(QMainWindow):
             ind = self.Cal[-1].index(0) # aggiungo 1 del mese successivo
             self.Cal[-1][ind] = 1
 
-        # se cambio periodo elimino dati e plotto tabella
-        self.TableDel.clearContents()
-        self.TableDel.setRowCount(0)
-        self.TableOrd = {}
-        self.Panel.printTable(self.Cal, self.LinStat)
+        self.refreshTable() # riplot della tabella
         
         # va fatta la disconnessione
         try: self.SelWeek.currentIndexChanged.disconnect()
@@ -338,13 +350,11 @@ class MainWindow(QMainWindow):
         # lanciare signal
         self.SelWeek.currentIndexChanged.connect(self.changeWeek)
 
-    def setStations(self, file = ""):
-        if not file: # se non passo file allora è una riprogrammata
+    def setStations(self, file = "", modify=False):
+        if not file and not modify: # se no file e no riprogram allora fiel di deault
             modify = False
-            filename = self.workFold + "Stazioni.txt"
+            filename = os.path.join(self.workFold, "Torino Nodo.txt")
             file = open(filename, "r")
-        else:
-            modify = True
 
 
         # LinStat organizzato come mappa {n_linea: {n_stazione: {"name": <name>, "pos": 
@@ -391,9 +401,6 @@ class MainWindow(QMainWindow):
             return file
 
 
-
-        return prog_num
-
     def setComboStations(self, name, i_lin):
         # aggiorno le stazioni nel ComboBox "name"
         self.SelStat[name].clear()
@@ -409,7 +416,24 @@ class MainWindow(QMainWindow):
                 text = self.LinStat[i_lin][i_stat]["name"]
                 self.SelStat[name].addItem(text, userData=[i_lin, i_stat])
 
+    def changeStations(self):
+        filename = QFileDialog.getOpenFileName(self, "Scegli File", self.workFold, "Text Files (*.txt);;All Files (*)")
+        filename = filename[0]
+        file = open(filename, "r")
+
+        self.setStations(file, False)
+        self.refreshTable()
+
+
+    def refreshTable(self):
+        # se cambio periodo elimino dati e plotto tabella
+        self.TableDel.clearContents()
+        self.TableDel.setRowCount(0)
+        self.TableOrd = {}
+        self.nOrd.setValue(1)
+        self.Panel.printTable(self.Cal, self.LinStat)
         
+
     
     ########## SIGNALS ##########
     def changeWeek(self):
@@ -515,12 +539,14 @@ class MainWindow(QMainWindow):
         else:
             text = str(n_ord)+"\n"+bin
             pos_y = [pos_Stat["DA"], pos_Stat["A"]]
-            data_Ord["graph"] = self.Panel.printIntLin(pos_x, pos_y, pen, text, data_Ord["graph"])
+            self.Panel.printIntLin(pos_x, pos_y, pen, text, data_Ord["graph"])
 
+
+            pos_y = [pos_Stat["DA"], pos_Stat["A"]]
             if check_stat["DA"]:
-                self.Panel.printIntSt(pos_x, pos_Stat["DA"], pen, "", data_Ord["graph"])
+                self.Panel.printIntIncl(pos_x, pos_y, pen, "DA", data_Ord["graph"])
             if check_stat["A"]:
-                self.Panel.printIntSt(pos_x, pos_Stat["A"], pen, "", data_Ord["graph"])
+                self.Panel.printIntIncl(pos_x, pos_y, pen, "A", data_Ord["graph"])
 
         self.TableOrd[n_ord] = data_Ord
 
@@ -543,16 +569,37 @@ class MainWindow(QMainWindow):
             graphics = self.TableOrd[n_ord]["graph"]
             self.Panel.removeInt(graphics)
 
+            # riscrivo i valori
+            self.nOrd.setValue(n_ord)
+            data_Ord = self.TableOrd[n_ord]
+            for lab in ["AMB", "DA", "A"]:
+                self.SelStat[lab].setCurrentIndex(data_Ord[lab][0])
+                self.CheckStat[lab].setChecked(bool(data_Ord[lab][1]))
+            
+            self.Binario.setCurrentIndex(data_Ord["bin"])
+            self.Alim.setChecked(bool(data_Ord["al"]))
+
+            days = data_Ord["days"]
+            days = [str(day) for day in days]
+            days = " ".join(days)
+            self.Giorni.setText(days)
+
+            h_da, min_da, h_a, min_a = data_Ord["hour"]
+            self.OraDa.setValue(h_da)
+            self.MinDa.setValue(min_da)
+            self.OraA.setValue(h_a)
+            self.MinA.setValue(min_a)
+
+
             self.TableOrd.pop(n_ord, None)
-
-
-
-
 
     def saveFile(self):
         y = str(self.Anno.value())
         m = str(self.Mese.value())
-        filename = self.workFold + "Save_"+y+ "_"+ m + ".txt"
+        folder = os.path.join(self.workFold, y+ "_"+ m)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        filename = os.path.join(folder, "Save_"+y+ "_"+ m + ".txt")
         file = open(filename, 'w')
 
         file.write(m+","+y+"\n")
@@ -560,7 +607,9 @@ class MainWindow(QMainWindow):
         for i_lin in self.LinStat.keys():
             for i_stat in self.LinStat[i_lin].keys():
                 if i_stat == 0: # salvo nome linea
-                    file.write("#"+self.LinStat[i_lin][0]["name"]+"\n")
+                    name_lin = self.LinStat[i_lin][0]["name"]
+                    name_lin = name_lin[3:-3] # rimuovo i segni ---<>---
+                    file.write("#"+name_lin+"\n")
                 else: #salvo nome stazione
                     file.write(self.LinStat[i_lin][i_stat]["name"]+"\n")
         file.write("####\n")
@@ -582,7 +631,7 @@ class MainWindow(QMainWindow):
 
             file.write("\n")
 
-        self.Panel.print2PDF(self.workFold, self.M, self.Y)
+        self.Panel.print2PDF(folder, self.M, self.Y)
 
     def loadFile(self):
 
@@ -600,7 +649,7 @@ class MainWindow(QMainWindow):
         
         self.setCalendar()
 
-        n_cell_V = self.setStations(file) # carico stazioni
+        n_cell_V = self.setStations(file, True) # carico stazioni
 
         self.Panel.printTable(self.Cal, self.LinStat) # print della tabella
 

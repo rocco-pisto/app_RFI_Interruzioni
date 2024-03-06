@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import QPrinter
+import os
 
 class DrawPanel(QGraphicsView):
     def __init__(self):
@@ -108,10 +109,8 @@ class DrawPanel(QGraphicsView):
             graph_obj[i_w].append(rect)
             graph_obj[i_w].append(text)
 
-        return graph_obj
 
     def printIntSt(self, Pos_x, pos_y, pen, label, graph_obj): # plot line per interruzione in stazione
-
         pos_y = pos_y + 0.5 # posizione rispetto bordo superiore
 
         for pos_x in Pos_x:
@@ -132,16 +131,49 @@ class DrawPanel(QGraphicsView):
 
             graph_obj[i_w].append(line)
 
-            if label:
-                text = QGraphicsTextItem(label)
-                pos_x_end = self.dx*pos_x_max
-                pos_y_cent = self.dy*pos_y
-                text_dx = text.boundingRect().width()
-                text_dy = text.boundingRect().height()
-                text.setPos(pos_x_end, pos_y_cent-text_dy/2)                
-                self.Scene[i_w].addItem(text)
+            text = QGraphicsTextItem(label)
+            pos_x_end = self.dx*pos_x_max
+            pos_y_cent = self.dy*pos_y
+            text_dx = text.boundingRect().width()
+            text_dy = text.boundingRect().height()
+            text.setPos(pos_x_end, pos_y_cent-text_dy/2)                
+            self.Scene[i_w].addItem(text)
 
-                graph_obj[i_w].append(text)
+            graph_obj[i_w].append(text)
+
+    def printIntIncl(self, Pos_x, Pos_y, pen, label, graph_obj): # plot line per interruzione in stazione
+        # uso la label per capire se è ambito stazione oppure stazione inclusa
+        if label == "DA":
+            if Pos_y[0] < Pos_y[1]: # caso normale
+                pos_y = Pos_y[0]+5/6
+            else: # caso strano
+                pos_y = Pos_y[0]+1/6
+        else:
+            if Pos_y[0] < Pos_y[1]: # caso normale
+                pos_y = Pos_y[1]+1/6
+            else: # caso strano
+                pos_y = Pos_y[1]+5/6
+
+
+        for pos_x in Pos_x:
+            i_w, pos_x_min, pos_x_max = pos_x
+            pos_x_min += 1 # casella nomi stazioni
+            pos_x_max += 1
+
+            
+            line = QGraphicsLineItem(self.dx*pos_x_min, self.dy*pos_y, \
+                                     self.dx*pos_x_max, self.dy*pos_y)
+
+            
+            line.setPen(pen)
+            self.Scene[i_w].addItem(line)
+
+            if i_w not in graph_obj:
+                graph_obj[i_w] = []
+
+            graph_obj[i_w].append(line)
+
+
         
     def removeInt(self, graph_obj):
         for i_w, graph in graph_obj.items():
@@ -154,7 +186,7 @@ class DrawPanel(QGraphicsView):
     def print2PDF(self, folder, m, y):
         for week, scene in enumerate(self.Scene):
 
-            pdf_filename = folder + str(y)+"_"+str(m)+"_"+str(week+1)+".pdf"
+            pdf_filename = os.path.join(folder, str(y)+"_"+str(m)+"_"+str(week+1)+".pdf")
 
             # Create a QPrinter
             printer = QPrinter(QPrinter.HighResolution)
