@@ -239,7 +239,7 @@ class MainWindow(QMainWindow):
         self.Anno.setValue(y)
 
         self.setStations() # carico stazioni di default
-        self.setCalendar() # carico palendario e plotto tabella
+        self.setCalendar() # carico calendario e plotto tabella
 
         
         
@@ -353,7 +353,8 @@ class MainWindow(QMainWindow):
     def setStations(self, file = "", modify=False):
         if not file and not modify: # se no file e no riprogram allora fiel di deault
             modify = False
-            filename = os.path.join(self.workFold, "Torino Nodo.txt")
+            self.nameStatGroup = "Torino Nodo"
+            filename = os.path.join(self.workFold, self.nameStatGroup+".txt")
             file = open(filename, "r")
 
 
@@ -400,7 +401,6 @@ class MainWindow(QMainWindow):
         else:
             return file
 
-
     def setComboStations(self, name, i_lin):
         # aggiorno le stazioni nel ComboBox "name"
         self.SelStat[name].clear()
@@ -419,11 +419,12 @@ class MainWindow(QMainWindow):
     def changeStations(self):
         filename = QFileDialog.getOpenFileName(self, "Scegli File", self.workFold, "Text Files (*.txt);;All Files (*)")
         filename = filename[0]
+
+        self.nameStatGroup, _ext = os.path.splitext(os.path.basename(filename))
         file = open(filename, "r")
 
         self.setStations(file, False)
         self.refreshTable()
-
 
     def refreshTable(self):
         # se cambio periodo elimino dati e plotto tabella
@@ -596,13 +597,14 @@ class MainWindow(QMainWindow):
     def saveFile(self):
         y = str(self.Anno.value())
         m = str(self.Mese.value())
-        folder = os.path.join(self.workFold, y+ "_"+ m)
+        folder = os.path.join(self.workFold, y+ "_"+ m + " " + self.nameStatGroup)
         if not os.path.exists(folder):
             os.makedirs(folder)
         filename = os.path.join(folder, "Save_"+y+ "_"+ m + ".txt")
         file = open(filename, 'w')
 
         file.write(m+","+y+"\n")
+        file.write(self.nameStatGroup+"\n")
         # salva stazioni
         for i_lin in self.LinStat.keys():
             for i_stat in self.LinStat[i_lin].keys():
@@ -649,7 +651,9 @@ class MainWindow(QMainWindow):
         
         self.setCalendar()
 
-        n_cell_V = self.setStations(file, True) # carico stazioni
+        line = file.readline() # carico nome gruppo stazioni
+        self.nameStatGroup = line.strip()
+        self.setStations(file, True) # carico stazioni
 
         self.Panel.printTable(self.Cal, self.LinStat) # print della tabella
 
