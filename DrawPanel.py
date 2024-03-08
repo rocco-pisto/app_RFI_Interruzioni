@@ -66,7 +66,6 @@ class DrawPanel(QGraphicsView):
         self.setScene(self.Scene[0])
 
     def printIntLin(self, Pos_x, Pos_y, pen, label, graph_obj): # plot rettangoli per intterruzione su linea
-        graph_obj = {}
 
         Pos_y.sort()
         pos_y_min, pos_y_max = Pos_y
@@ -82,10 +81,6 @@ class DrawPanel(QGraphicsView):
             pos_x_min += 1 # casella nomi stazioni
             pos_x_max += 1
             width = pos_x_max-pos_x_min
-
-            
-
-            
 
             rect = QGraphicsRectItem(self.dx*pos_x_min, self.dy*pos_y_min,  \
                                      self.dx*width, self.dy*heigth)
@@ -122,14 +117,9 @@ class DrawPanel(QGraphicsView):
             line = QGraphicsLineItem(self.dx*pos_x_min, self.dy*pos_y, \
                                      self.dx*pos_x_max, self.dy*pos_y)
 
-            
             line.setPen(pen)
             self.Scene[i_w].addItem(line)
 
-            if i_w not in graph_obj:
-                graph_obj[i_w] = []
-
-            graph_obj[i_w].append(line)
 
             text = QGraphicsTextItem(label)
             pos_x_end = self.dx*pos_x_max
@@ -139,6 +129,10 @@ class DrawPanel(QGraphicsView):
             text.setPos(pos_x_end, pos_y_cent-text_dy/2)                
             self.Scene[i_w].addItem(text)
 
+            if i_w not in graph_obj:
+                            graph_obj[i_w] = []
+
+            graph_obj[i_w].append(line)
             graph_obj[i_w].append(text)
 
     def printIntIncl(self, Pos_x, Pos_y, pen, label, graph_obj): # plot line per interruzione in stazione

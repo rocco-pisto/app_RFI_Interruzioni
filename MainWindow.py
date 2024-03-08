@@ -4,9 +4,9 @@ from PyQt5.QtCore import *
 
 from datetime import datetime
 import calendar
+import string
 
 import os
-
 
 from DrawPanel import *
 
@@ -120,6 +120,7 @@ class MainWindow(QMainWindow):
         r = r +2
         self.nOrd = QSpinBox()
         self.nOrd.setValue(1)
+        self.nOrd.valueChanged.connect(self.showOrdData)
         lay_comH[r].addWidget(self.nOrd, dim_lay_comH[r][0] )
         lay_comH[r].addWidget(QLabel("N° ORD"), dim_lay_comH[r][1] )
 
@@ -252,7 +253,7 @@ class MainWindow(QMainWindow):
 
         
         # testbench
-        """
+        
         self.SelStat["AMB"].setCurrentIndex(1)
         self.CheckStat["AMB"].setChecked(True)
         self.Giorni.setText("1 3  5 12")
@@ -270,11 +271,12 @@ class MainWindow(QMainWindow):
         self.OraDa.setValue(22)
         self.OraA.setValue(4)
         self.Plot.click()
-
+        
+        self.nOrd.setValue(5)
         self.SelStat["DA"].setCurrentIndex(16)
         self.SelStat["A"].setCurrentIndex(3)
         self.CheckStat["AMB"].setChecked(False)
-        self.Giorni.setText("4 8 17 31")
+        self.Giorni.setText("4 8")
         self.Alim.setChecked(True)
         self.CheckStat["A"].setChecked(True)
         self.OraDa.setValue(22)
@@ -283,9 +285,10 @@ class MainWindow(QMainWindow):
         self.MinA.setValue(20)
         self.Plot.click()
 
+        self.nOrd.setValue(5)
         self.SelStat["AMB"].setCurrentIndex(16)
         self.CheckStat["AMB"].setChecked(True)
-        self.Giorni.setText("4 8 17 31")
+        self.Giorni.setText("5 10")
         self.Alim.setChecked(True)
         self.OraDa.setValue(22)
         self.MinDa.setValue(30)
@@ -294,7 +297,7 @@ class MainWindow(QMainWindow):
         self.Plot.click()
 
         self.Save.click()
-        """
+        
         
         """
         self.Riprogram.click()
@@ -446,11 +449,18 @@ class MainWindow(QMainWindow):
         i_lin = i[0]
         self.setComboStations("A", i_lin)
 
+    def showOrdData(self, n_ord):
+        n_ord = str(n_ord)
+        if n_ord in self.TableOrd:
+            self.fillOrdData(n_ord)
+        else:
+            self.clearOrdData()
+
     def plotOrd(self):
         data_Ord = {}
         # lettura dati
-        n_ord = self.nOrd.value()
-        self.nOrd.setValue(n_ord+1)
+        n_ord_num = self.nOrd.value()
+        n_ord = str(n_ord_num)
 
         pos_Stat = {}
         check_stat = {}
@@ -460,7 +470,6 @@ class MainWindow(QMainWindow):
             [i_lin, i_stat]  = self.SelStat[lab].currentData()
             pos_Stat[lab] = self.LinStat[i_lin][i_stat]["pos"]
             check_stat[lab] = self.CheckStat[lab].isChecked()
-            self.CheckStat[lab].setChecked(False)
             data_Ord[lab] = [indx, int(check_stat[lab])]
 
             if lab == "AMB": # salvo eventuale testo addizionale
@@ -484,13 +493,11 @@ class MainWindow(QMainWindow):
         else:
             pen = QPen(Qt.green)
         pen.setWidth(2)   
-        self.Alim.setChecked(False)
 
         days = self.Giorni.text()
         days = days.split()
         days = [int(day) for day in days if day] # rimuovo elementi nulli e converto in interi
         data_Ord["days"] = days
-        self.Giorni.setText("")
 
         h_da = self.OraDa.value()
         min_da = self.MinDa.value()
@@ -499,11 +506,6 @@ class MainWindow(QMainWindow):
         min_a = self.MinA.value()
         
         data_Ord["hour"] = [h_da, min_da, h_a, min_a]
-
-        self.OraDa.setValue(0)
-        self.MinDa.setValue(0)
-        self.OraA.setValue(0)
-        self.MinA.setValue(0)
 
         h_da = h_da + min_da/60
         h_a = h_a +min_a/60
@@ -530,15 +532,22 @@ class MainWindow(QMainWindow):
                 pos_x.append([i_w, pos_x_min, 7])
                 pos_x.append([i_w+1, 0, pos_x_max-7])
 
-        
+        if n_ord in self.TableOrd: # potrei avere più plot per la stessa nOrd
+            letters = list(string.ascii_lowercase)
+            i = 1
+            n_ord = n_ord+letters[i]
+            while n_ord in self.TableOrd:
+                n_ord = n_ord[:-1]+letters[i]
+                i += 1
+
         # elaborazione spessore
         data_Ord["graph"] = {}
         if check_stat["AMB"]:
-            text = str(n_ord)+text_add
+            text = n_ord+text_add
             pos_y = pos_Stat["AMB"]
             self.Panel.printIntSt(pos_x, pos_y, pen, text, data_Ord["graph"])
         else:
-            text = str(n_ord)+"\n"+bin
+            text = n_ord+"\n"+bin
             pos_y = [pos_Stat["DA"], pos_Stat["A"]]
             self.Panel.printIntLin(pos_x, pos_y, pen, text, data_Ord["graph"])
 
@@ -549,50 +558,82 @@ class MainWindow(QMainWindow):
             if check_stat["A"]:
                 self.Panel.printIntIncl(pos_x, pos_y, pen, "A", data_Ord["graph"])
 
+        
+        
         self.TableOrd[n_ord] = data_Ord
 
         # table for deleting
         row = self.TableDel.rowCount()
         self.TableDel.insertRow(row)
-        n_ord = QTableWidgetItem(str(n_ord))
+        n_ord = QTableWidgetItem(n_ord)
         n_ord.setFlags(n_ord.flags() & ~Qt.ItemIsEditable)
         n_ord.setFlags(n_ord.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
         n_ord.setCheckState(Qt.Checked)
 
         self.TableDel.setItem(row, 0, n_ord)
 
+        # incremento numero ordinata
+        self.nOrd.setValue(n_ord_num+1)
+
     def deleteOrd(self, row, col):
         item = self.TableDel.item(row, col)
         if item.checkState() == Qt.Unchecked:
-            n_ord = int(item.text())
+            n_ord = item.text()
             self.TableDel.removeRow(row)
 
             graphics = self.TableOrd[n_ord]["graph"]
             self.Panel.removeInt(graphics)
 
-            # riscrivo i valori
-            self.nOrd.setValue(n_ord)
-            data_Ord = self.TableOrd[n_ord]
-            for lab in ["AMB", "DA", "A"]:
-                self.SelStat[lab].setCurrentIndex(data_Ord[lab][0])
-                self.CheckStat[lab].setChecked(bool(data_Ord[lab][1]))
-            
-            self.Binario.setCurrentIndex(data_Ord["bin"])
-            self.Alim.setChecked(bool(data_Ord["al"]))
+            # n_ord potrebbe contenere lettere se duplicato
+            n_ord_num = n_ord[:-1] if n_ord[-1].isalpha() else n_ord
+            self.nOrd.setValue(int(n_ord_num))
 
-            days = data_Ord["days"]
-            days = [str(day) for day in days]
-            days = " ".join(days)
-            self.Giorni.setText(days)
-
-            h_da, min_da, h_a, min_a = data_Ord["hour"]
-            self.OraDa.setValue(h_da)
-            self.MinDa.setValue(min_da)
-            self.OraA.setValue(h_a)
-            self.MinA.setValue(min_a)
-
+            self.fillOrdData(n_ord)
 
             self.TableOrd.pop(n_ord, None)
+
+
+    def fillOrdData(self, n_ord):
+        # riscrivo i valori
+        data_Ord = self.TableOrd[n_ord]
+        for lab in ["AMB", "DA", "A"]:
+            self.SelStat[lab].setCurrentIndex(data_Ord[lab][0])
+            self.CheckStat[lab].setChecked(bool(data_Ord[lab][1]))
+        
+        self.Binario.setCurrentIndex(data_Ord["bin"])
+        self.Alim.setChecked(bool(data_Ord["al"]))
+
+        days = data_Ord["days"]
+        days = [str(day) for day in days]
+        days = " ".join(days)
+        self.Giorni.setText(days)
+
+        h_da, min_da, h_a, min_a = data_Ord["hour"]
+        self.OraDa.setValue(h_da)
+        self.MinDa.setValue(min_da)
+        self.OraA.setValue(h_a)
+        self.MinA.setValue(min_a)
+
+    def clearOrdData(self):
+        labs = ["AMB", "DA", "A"]
+        for lab in labs:
+            self.SelStat[lab].setCurrentIndex(0)
+            self.CheckStat[lab].setChecked(False)
+
+        self.Binario.setCurrentIndex(0)
+
+        self.Alim.setChecked(False)
+
+        self.Giorni.setText("")
+
+
+        self.OraDa.setValue(0)
+        self.MinDa.setValue(0)
+        self.OraA.setValue(0)
+        self.MinA.setValue(0)
+
+
+
 
     def saveFile(self):
         y = str(self.Anno.value())
@@ -618,7 +659,10 @@ class MainWindow(QMainWindow):
         # salva dati
         labs = ["AMB", "DA", "A"]
         for n_ord in self.TableOrd.keys():
-            file.write(str(n_ord)+",")
+            
+            n_ord_write = n_ord[:-1] if n_ord[-1].isalpha() else n_ord
+
+            file.write(n_ord_write+",")
             for lab in labs:
                 st_data = self.TableOrd[n_ord][lab]
                 for data in st_data: # i=0: index of ComboBox, i=1: CheckedBox
