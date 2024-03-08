@@ -253,7 +253,7 @@ class MainWindow(QMainWindow):
 
         
         # testbench
-        
+        """
         self.SelStat["AMB"].setCurrentIndex(1)
         self.CheckStat["AMB"].setChecked(True)
         self.Giorni.setText("1 3  5 12")
@@ -297,7 +297,7 @@ class MainWindow(QMainWindow):
         self.Plot.click()
 
         self.Save.click()
-        
+        """
         
         """
         self.Riprogram.click()
