@@ -120,6 +120,7 @@ class MainWindow(QMainWindow):
         r = r +2
         self.nOrd = QSpinBox()
         self.nOrd.setValue(1)
+        self.nOrd.setMaximum(1000)
         self.nOrd.valueChanged.connect(self.showOrdData)
         lay_comH[r].addWidget(self.nOrd, dim_lay_comH[r][0] )
         lay_comH[r].addWidget(QLabel("N° ORD"), dim_lay_comH[r][1] )
